@@ -192,9 +192,9 @@ export default function GlobeCDN({
         .polygonCapMaterial(
           // transparent cap; we're going for hollow + outline
           new MeshLambertMaterial({
-            color: 0x000000,
+            color: 0x00e5ff,
             transparent: true,
-            opacity: 0,
+            opacity: 0.25,
             side: DoubleSide,
           })
         )
@@ -205,7 +205,7 @@ export default function GlobeCDN({
         // points (ephemeral)
         .pointsData([])
         .pointAltitude(0.01)
-        .pointColor(() => NEON_GREEN)
+        .pointColor(() => NEON_WHITE)
         .pointLabel((d: any) => d.label ?? "")
         .pointRadius(() => basePointRadius)
 
