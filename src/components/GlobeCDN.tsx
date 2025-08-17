@@ -236,16 +236,38 @@ export default function GlobeCDN({
       }
       globeRef.current = globe;
 
-      // 3) Fetch world-atlas land TopoJSON and convert
+      // 3) Fetch world-atlas land + ocean + lakes TopoJSON and convert
       try {
-        const res = await fetch(
-          "https://cdn.jsdelivr.net/npm/world-atlas@2/land-110m.json"
-        );
-        const topo = await res.json();
-        const land = topojson.feature(topo, topo.objects.land).features;
-        if (!cancelled) globe.polygonsData(land);
+        const [land, ocean, lakes] = await Promise.all([
+          fetch("https://cdn.jsdelivr.net/npm/world-atlas@2/land-110m.json")
+            .then((res) => res.json())
+            .then((topo) => topojson.feature(topo, topo.objects.land).features),
+
+          fetch(
+            "https://raw.githubusercontent.com/visionscarto/world-atlas/master/topojson/ne_110m_ocean.json"
+          )
+            .then((res) => res.json())
+            .then(
+              (topo) =>
+                topojson.feature(topo, topo.objects.ne_110m_ocean).features
+            ),
+
+          fetch(
+            "https://raw.githubusercontent.com/visionscarto/world-atlas/master/topojson/ne_110m_lakes.json"
+          )
+            .then((res) => res.json())
+            .then(
+              (topo) =>
+                topojson.feature(topo, topo.objects.ne_110m_lakes).features
+            ),
+        ]);
+
+        if (!cancelled) {
+          // Merge all features together
+          globe.polygonsData([...land, ...ocean, ...lakes]);
+        }
       } catch (e) {
-        console.warn("Failed to load world-atlas land polygons", e);
+        console.warn("Failed to load world-atlas polygons", e);
       }
 
       // --- Arc emission with strict concurrency (max 3) & staggering ---
