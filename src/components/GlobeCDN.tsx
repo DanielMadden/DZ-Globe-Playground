@@ -1,4 +1,6 @@
 import * as React from "react";
+import { MeshLambertMaterial, DoubleSide } from "https://esm.sh/three";
+import * as topojson from "https://esm.sh/topojson-client";
 
 function loadScriptOnce(src: string) {
   return new Promise<void>((resolve, reject) => {
@@ -78,10 +80,12 @@ export default function GlobeCDN({
 
       // Configure the globe
       const globe = window.Globe!()
-        .globeImageUrl(globeImageUrl)
+        // .globeImageUrl(globeImageUrl)
+        .showGlobe(false)
         .backgroundColor(backgroundColor)
-        .atmosphereColor("#88c8ff")
-        .atmosphereAltitude(0.15)
+        // .atmosphereColor("#88c8ff")
+        // .atmosphereAltitude(0.15)
+        .showAtmosphere(false)
         // Points
         .pointsData(DEMO_POINTS)
         .pointAltitude(0.01)
@@ -99,6 +103,22 @@ export default function GlobeCDN({
 
       // ✅ Correct mount: pass the container element
       globe(containerRef.current);
+
+      fetch("//cdn.jsdelivr.net/npm/world-atlas/land-110m.json")
+        .then((res) => res.json())
+        .then((landTopo) => {
+          globe
+            .polygonsData(
+              topojson.feature(landTopo, landTopo.objects.land).features
+            )
+            .polygonCapMaterial(
+              new MeshLambertMaterial({
+                color: "green",
+                side: DoubleSide,
+              })
+            )
+            .polygonSideColor(() => "rgba(0,0,0,0)");
+        });
 
       // Controls
       const controls = globe.controls?.();
