@@ -3,6 +3,8 @@ body,
 #root {
   height: 100%;
   margin: 0;
+  background: rgb(128, 128, 128);
+  background: linear-gradient(90deg, rgb(128, 128, 128) 0%, rgb(0, 0, 0) 100%);
 }
 * {
   box-sizing: border-box;
