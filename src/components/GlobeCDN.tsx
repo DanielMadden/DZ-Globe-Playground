@@ -38,15 +38,11 @@ async function ensureGlobe() {
 }
 
 // module-level variables (outside the component)
-let threePromise: Promise<any> | null = null;
 let topoPromise: Promise<any> | null = null;
 
-function getThreeAndTopo() {
-  if (!threePromise) {
-    threePromise = import("https://esm.sh/three@0.161.0");
-    topoPromise = import("https://esm.sh/topojson-client@3");
-  }
-  return Promise.all([threePromise, topoPromise]);
+function getTopo() {
+  topoPromise = import("https://esm.sh/topojson-client@3");
+  return Promise.all([topoPromise]);
 }
 
 // ---------- Neon palette ----------
@@ -217,27 +213,18 @@ export default function GlobeCDN({
       const GlobeCtor = await ensureGlobe();
       if (cancelled || !containerRef.current) return;
 
-      const [{ MeshLambertMaterial, DoubleSide }, topojson] =
-        await getThreeAndTopo();
+      const [topojson] = await getTopo();
 
       containerRef.current.innerHTML = "";
 
-      const globe = window.Globe!()
+      const globe = GlobeCtor()
         .backgroundColor(backgroundColor)
         .showGlobe(false)
         .showAtmosphere(false)
 
         // Start empty; we set polygons after fetch
         .polygonsData([])
-        .polygonCapMaterial(
-          // transparent cap; we're going for hollow + outline
-          new MeshLambertMaterial({
-            color: 0x00e5ff,
-            transparent: true,
-            opacity: 0.25,
-            side: DoubleSide,
-          })
-        )
+        .polygonCapColor(() => "rgba(0,229,255,0.25)")
         .polygonSideColor(() => "rgba(0,0,0,0)")
         .polygonStrokeColor(() => NEON_BLUE)
         .polygonAltitude(() => 0.003)
