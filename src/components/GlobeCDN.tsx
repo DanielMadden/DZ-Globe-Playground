@@ -1,6 +1,6 @@
-// src/components/GlobeCDN.tsx
+// src/components/Globe.tsx
 import * as React from "react";
-// import { addPropertyControls, ControlType } from "framer";
+import { addPropertyControls, ControlType } from "framer";
 
 /* ----------------------------- script loading ----------------------------- */
 
@@ -127,6 +127,20 @@ function pick2<T>(arr: T[]): [T, T] {
   return [arr[i], arr[j]];
 }
 
+// function hexToRgb(hex: string): string {
+//   const res = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+//   return res
+//     ? `${parseInt(res[1], 16)},${parseInt(res[2], 16)},${parseInt(res[3], 16)}`
+//     : "0,0,0";
+// }
+
+function parseRgbString(rgb: string): string {
+  const match = rgb.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/i);
+  if (!match) return "0,0,0";
+  const [, r, g, b] = match;
+  return `${r},${g},${b}`;
+}
+
 /* --------------------------------- types ---------------------------------- */
 
 type ArcDatum = {
@@ -147,17 +161,35 @@ type Props = {
   backgroundColor?: string;
   autoRotate?: boolean;
   autoRotateSpeed?: number;
+  polygonColor?: string;
+  polygonOpacity?: number;
+  polygonStrokeColor?: string;
+  polygonSideColor?: string;
+  polygonAltitude?: number;
 };
 
 /* -------------------------------- component -------------------------------- */
 
-export default function GlobeCDN({
+export default function Globe({
   backgroundColor = BG_BLACK,
   autoRotate = true,
   autoRotateSpeed = 0.6,
-}: Props) {
+  polygonColor = "rgb(255,255,255)",
+  polygonOpacity = 0.5,
+  polygonSideColor = "rgb(255,255,255)",
+}: // polygonSideColor = "rgb(255,255,255)",
+// polygonStrokeColor = "rgb(255,255,255)",
+// polygonAltitude = 0,
+Props) {
   const containerRef = React.useRef<HTMLDivElement>(null);
   const globeRef = React.useRef<any>(null);
+
+  console.log(`
+    
+    ${polygonColor}
+    ${polygonOpacity}
+    
+    `);
 
   const arcsRef = React.useRef<ArcDatum[]>([]);
   const ringsRef = React.useRef<RingDatum[]>([]);
@@ -206,10 +238,12 @@ export default function GlobeCDN({
         .showGlobe(false)
         .showAtmosphere(false)
         .polygonsData([])
-        .polygonCapColor(() => "rgba(0,123,255,0.25)")
-        .polygonSideColor(() => "rgba(0,0,0,0)")
-        .polygonStrokeColor(() => NEON_BLUE)
-        .polygonAltitude(() => 0.003)
+        .polygonCapColor(
+          () => `rgba(${parseRgbString(polygonColor)},${polygonOpacity})`
+        )
+        .polygonSideColor(() => polygonSideColor)
+        .polygonStrokeColor(() => `rgba(0,0,0,0)`)
+        .polygonAltitude(() => 0)
         .pointsData([])
         .pointAltitude(0.01)
         .pointColor(() => NEON_WHITE)
@@ -407,11 +441,28 @@ export default function GlobeCDN({
   );
 }
 
-// Framer control: Background color (hex or rgba string both work)
-// addPropertyControls(MatrixCanvas, {
-//   background: {
-//     title: "Color",
-//     type: ControlType.Color,
-//     defaultValue: "#002564",
-//   },
-// });
+addPropertyControls(Globe, {
+  polygonColor: { type: ControlType.Color, title: "Color" },
+  polygonOpacity: {
+    type: ControlType.Number,
+    title: "Opacity",
+    min: 0,
+    max: 1,
+    step: 0.05,
+  },
+  // polygonStrokeColor: {
+  //   type: ControlType.Color,
+  //   title: "Stroke Color",
+  // },
+  polygonSideColor: {
+    type: ControlType.Color,
+    title: "Side Color",
+  },
+  // polygonAltitude: {
+  //   type: ControlType.Number,
+  //   title: "Altitude",
+  //   min: 0,
+  //   max: 1,
+  //   step: 0.001,
+  // },
+});
